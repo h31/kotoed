@@ -375,7 +375,20 @@ abstract class CrudDatabaseVerticle<R : TableRecord<R>>(
 
         val select = select(queryToObjectCall(message)).from(table)
         val join = joins.fold(select) { a, (from, field, to, _, key) ->
-            a.leftJoin(to).on(from.field(field).uncheckedCast<Field<Any>>().eq(key?.let { to.field(it) } ?: to.primaryKeyField))
+            a
+                    .leftJoin(to)
+                    .on(
+                            from
+                            .field(field)
+                            .uncheckedCast<Field<Any>>()
+                            .eq(key
+                                    ?.let {
+                                        to
+                                                .field(it)
+                                    }
+                                    ?: to.primaryKeyField
+                            )
+                    )
         }
         val condition: Condition = joins.fold(DSL.condition(true)) { a: Condition, (_, _, to, record, _) ->
             a.and(makeFindCondition(to, record))
