@@ -174,7 +174,10 @@ class SubmissionProcessorVerticle : ProcessorVerticle<SubmissionRecord>(Tables.S
         parentSub?.let {
             recreateCommentsAsync(vcsReq.uid, it, sub)
 
-            copyTagsFrom(it, sub)
+            if (!it.tagsCopied) {
+                copyTagsFrom(it, sub)
+                dbUpdateAsync(it.apply { tagsCopied = true })
+            }
         }
 
         val buildInfos = dbFindAsync(BuildRecord().apply { submissionId = sub.id })
