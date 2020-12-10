@@ -1,7 +1,6 @@
 package org.jetbrains.research.kotoed.db.processors
 
 import io.vertx.core.json.JsonObject
-import kotlinx.coroutines.withContext
 import org.jetbrains.research.kotoed.code.Filename
 import org.jetbrains.research.kotoed.code.Location
 import org.jetbrains.research.kotoed.data.api.VerificationData
@@ -33,8 +32,6 @@ class SubmissionProcessorVerticle : ProcessorVerticle<SubmissionRecord>(Tables.S
 
     private val SubmissionCommentRecord.location
         get() = Location(Filename(path = sourcefile), sourceline)
-
-    private val tagCopyingContext = betterSingleThreadContext("tagCopyingContext")
 
     private suspend fun recreateCommentsAsync(vcsUid: String, parent: SubmissionRecord, child: SubmissionRecord) {
         val submissionCacheAsync = AsyncCache { id: Int -> fetchByIdAsync(Tables.SUBMISSION, id) }
@@ -177,11 +174,9 @@ class SubmissionProcessorVerticle : ProcessorVerticle<SubmissionRecord>(Tables.S
         parentSub?.let {
             recreateCommentsAsync(vcsReq.uid, it, sub)
 
-            withContext(tagCopyingContext) {
-                if (!it.tagsCopied) {
-                    copyTagsFrom(it, sub)
-                    dbUpdateAsync(it.apply { tagsCopied = true })
-                }
+            if (!it.tagsCopied) {
+                copyTagsFrom(it, sub)
+                dbUpdateAsync(it.apply { tagsCopied = true })
             }
         }
 
