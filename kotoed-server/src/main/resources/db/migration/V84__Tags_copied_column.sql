@@ -1,5 +1,6 @@
-alter table submission
-    add tags_copied boolean default false not null;
+ALTER TABLE submission
+    ADD tags_copied BOOLEAN DEFAULT FALSE NOT NULL;
 
 UPDATE submission
-SET tags_copied = true;
+SET tags_copied = TRUE
+WHERE NOT EXISTS(SELECT * FROM submission_tag WHERE submission_id = submission.id);
